@@ -1,0 +1,19 @@
+# Ansible real inventory
+infra/ansible/inventory/hosts.ini
+
+# Secrets
+.env
+*.env
+*.pem
+*.key
+
+# Ansible
+*.retry
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+.idea/
