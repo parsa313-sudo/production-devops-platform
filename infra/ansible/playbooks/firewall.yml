@@ -1,0 +1,62 @@
+---
+- name: Configure firewall on all nodes
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install UFW
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+        update_cache: true
+
+    - name: Set default incoming policy to deny
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set default outgoing policy to allow
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow SSH from WireGuard network
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        port: "22"
+        proto: tcp
+        src: 10.50.0.0/24
+
+- name: Configure infra firewall
+  hosts: infra
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Allow WireGuard from Internet
+      community.general.ufw:
+        rule: allow
+        interface_in: eth0
+        port: "51820"
+        proto: udp
+
+    - name: Allow routing between WireGuard peers
+      community.general.ufw:
+        rule: allow
+        route: true
+        interface_in: wg0
+        interface_out: wg0
+        src: 10.50.0.0/24
+        dest: 10.50.0.0/24
+
+- name: Enable UFW
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Enable firewall
+      community.general.ufw:
+        state: enabled
