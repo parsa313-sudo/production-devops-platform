@@ -33,6 +33,8 @@ The infrastructure consists of four servers:
 - Gitea
 - Drone CI
 - Argo CD
+- Private Docker Registry
+- CloudNativePG
 - PostgreSQL
 - Redis
 - Prometheus
@@ -41,6 +43,7 @@ The infrastructure consists of four servers:
 - Elasticsearch
 - Logstash
 - Kibana
+- Velero
 - NFS
 
 ## Project Status
