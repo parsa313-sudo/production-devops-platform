@@ -51,6 +51,22 @@
         src: 10.50.0.0/24
         dest: 10.50.0.0/24
 
+    - name: Allow DNS UDP from WireGuard network
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        port: "53"
+        proto: udp
+        src: 10.50.0.0/24
+
+    - name: Allow DNS TCP from WireGuard network
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        port: "53"
+        proto: tcp
+        src: 10.50.0.0/24
+
 - name: Enable UFW
   hosts: all
   become: true
@@ -60,3 +76,4 @@
     - name: Enable firewall
       community.general.ufw:
         state: enabled
+

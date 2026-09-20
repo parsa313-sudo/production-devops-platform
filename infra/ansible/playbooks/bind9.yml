@@ -1,0 +1,72 @@
+---
+- name: Configure private DNS server
+  hosts: infra
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install BIND9 packages
+      ansible.builtin.apt:
+        name:
+          - bind9
+          - bind9-utils
+          - dnsutils
+        state: present
+        update_cache: true
+
+    - name: Create BIND zone directory
+      ansible.builtin.file:
+        path: /etc/bind/zones
+        state: directory
+        owner: root
+        group: bind
+        mode: "0755"
+
+    - name: Configure BIND options
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/bind9/named.conf.options.j2"
+        dest: /etc/bind/named.conf.options
+        owner: root
+        group: bind
+        mode: "0644"
+      notify: Restart BIND9
+
+    - name: Configure local DNS zones
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/bind9/named.conf.local.j2"
+        dest: /etc/bind/named.conf.local
+        owner: root
+        group: bind
+        mode: "0644"
+      notify: Restart BIND9
+
+    - name: Deploy devops.internal zone
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/bind9/db.devops.internal.j2"
+        dest: /etc/bind/zones/db.devops.internal
+        owner: root
+        group: bind
+        mode: "0644"
+      notify: Restart BIND9
+
+    - name: Validate BIND configuration
+      ansible.builtin.command:
+        cmd: named-checkconf
+      changed_when: false
+
+    - name: Validate DNS zone
+      ansible.builtin.command:
+        cmd: named-checkzone devops.internal /etc/bind/zones/db.devops.internal
+      changed_when: false
+
+    - name: Enable and start BIND9
+      ansible.builtin.systemd:
+        name: named
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart BIND9
+      ansible.builtin.systemd:
+        name: named
+        state: restarted
