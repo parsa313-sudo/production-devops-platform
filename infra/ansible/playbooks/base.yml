@@ -1,0 +1,74 @@
+---
+- name: Configure base operating system
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+
+    - name: Update APT package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Upgrade installed packages
+      ansible.builtin.apt:
+        upgrade: safe
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - vim
+          - git
+          - jq
+          - htop
+          - unzip
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - net-tools
+          - dnsutils
+          - traceroute
+          - tcpdump
+          - rsync
+          - chrony
+          - unattended-upgrades
+        state: present
+
+    - name: Get current timezone
+      ansible.builtin.command:
+        cmd: timedatectl show -p Timezone --value
+      register: current_timezone
+      changed_when: false
+
+    - name: Set server timezone to Tehran
+      ansible.builtin.command:
+        cmd: timedatectl set-timezone Asia/Tehran
+      when: current_timezone.stdout != "Asia/Tehran"
+
+    - name: Enable and start Chrony
+      ansible.builtin.service:
+        name: chrony
+        state: started
+        enabled: true
+
+    - name: Configure automatic security updates
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+
+    - name: Check whether reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+
+    - name: Report reboot requirement
+      ansible.builtin.debug:
+        msg: "Reboot required: {{ reboot_required.stat.exists }}"
