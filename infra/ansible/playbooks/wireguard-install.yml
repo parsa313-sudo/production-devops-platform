@@ -1,0 +1,53 @@
+---
+- name: Install and prepare WireGuard
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install WireGuard
+      ansible.builtin.apt:
+        name:
+          - wireguard
+          - wireguard-tools
+        state: present
+        update_cache: true
+
+    - name: Ensure WireGuard directory exists
+      ansible.builtin.file:
+        path: /etc/wireguard
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Generate WireGuard private key
+      ansible.builtin.shell:
+        cmd: "umask 077 && wg genkey > /etc/wireguard/private.key"
+        creates: /etc/wireguard/private.key
+
+    - name: Generate WireGuard public key
+      ansible.builtin.shell:
+        cmd: "wg pubkey < /etc/wireguard/private.key > /etc/wireguard/public.key"
+        creates: /etc/wireguard/public.key
+
+    - name: Protect private key
+      ansible.builtin.file:
+        path: /etc/wireguard/private.key
+        owner: root
+        group: root
+        mode: "0600"
+
+- name: Enable routing on WireGuard hub
+  hosts: infra
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Enable IPv4 forwarding
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+        sysctl_set: true
+        reload: true

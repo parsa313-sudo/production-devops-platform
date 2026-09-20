@@ -1,0 +1,26 @@
+[Interface]
+Address = {% if inventory_hostname == 'infra-01' %}10.50.0.1/24{% else %}10.50.0.10/24{% endif %}
+
+PrivateKey = {{ wg_private_key.content | b64decode | trim }}
+
+{% if inventory_hostname == 'infra-01' %}
+ListenPort = 51820
+
+[Peer]
+# k8s-cp-01
+PublicKey = {{ hostvars['k8s-cp-01']['wg_public_key'].content | b64decode | trim }}
+AllowedIPs = 10.50.0.10/32
+
+[Peer]
+# Laptop
+PublicKey = {{ laptop_wg_public_key }}
+AllowedIPs = 10.50.0.100/32
+
+{% elif inventory_hostname == 'k8s-cp-01' %}
+[Peer]
+# infra-01
+PublicKey = {{ hostvars['infra-01']['wg_public_key'].content | b64decode | trim }}
+Endpoint = {{ infra_public_ip }}:51820
+AllowedIPs = 10.50.0.0/24
+PersistentKeepalive = 25
+{% endif %}
