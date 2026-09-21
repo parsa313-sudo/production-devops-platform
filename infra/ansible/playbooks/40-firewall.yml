@@ -1,5 +1,5 @@
 ---
-- name: Configure firewall on all nodes
+- name: Configure base firewall on all nodes
   hosts: all
   become: true
   gather_facts: false
@@ -28,6 +28,20 @@
         port: "22"
         proto: tcp
         src: 10.50.0.0/24
+
+
+- name: Configure Kubernetes node firewall
+  hosts: k8s_cluster
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Allow trusted Kubernetes traffic over WireGuard
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        src: 10.50.0.0/24
+
 
 - name: Configure infra firewall
   hosts: infra
@@ -67,6 +81,7 @@
         proto: tcp
         src: 10.50.0.0/24
 
+
 - name: Enable UFW
   hosts: all
   become: true
@@ -76,4 +91,3 @@
     - name: Enable firewall
       community.general.ufw:
         state: enabled
-
