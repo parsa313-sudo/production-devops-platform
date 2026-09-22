@@ -1,0 +1,25 @@
+image:
+  baseRepo: k8s.m.daocloud.io
+
+  nfs:
+    repository: k8s.m.daocloud.io/sig-storage/nfsplugin
+    tag: v4.13.4
+    pullPolicy: IfNotPresent
+
+controller:
+  replicas: 1
+  defaultOnDeletePolicy: retain
+
+storageClass:
+  create: true
+  name: nfs-rwx
+
+  parameters:
+    server: 10.50.0.1
+    share: /srv/nfs/k8s
+
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate
+
+  mountOptions:
+    - nfsvers=4.1
