@@ -41,6 +41,10 @@
         rule: allow
         interface_in: wg0
         src: 10.50.0.0/24
+    - name: Allow routed traffic for Kubernetes networking
+      community.general.ufw:
+        direction: routed
+        policy: allow
 
 
 - name: Configure infra firewall
