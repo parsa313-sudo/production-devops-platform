@@ -1,0 +1,75 @@
+global:
+  image:
+    repository: quay.m.daocloud.io/argoproj/argocd
+    tag: v3.5.3
+    imagePullPolicy: IfNotPresent
+
+  affinity:
+    podAntiAffinity: soft
+    nodeAffinity:
+      type: soft
+      matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+            - k8s-worker-02
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+server:
+  service:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+redis:
+  image:
+    repository: ecr-public.aws.com/docker/library/redis
+    tag: 8.6.4-alpine
+    imagePullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+redisSecretInit:
+  enabled: false

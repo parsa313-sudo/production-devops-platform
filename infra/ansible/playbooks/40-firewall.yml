@@ -45,6 +45,13 @@
       community.general.ufw:
         direction: routed
         policy: allow
+    - name: Allow Kubernetes Pods to ClusterIP services
+      community.general.ufw:
+        rule: allow
+        direction: in
+        src: 10.244.0.0/16
+        dest: 10.96.0.0/12
+        comment: Kubernetes pod-to-Service traffic
 
 
 - name: Configure infra firewall
