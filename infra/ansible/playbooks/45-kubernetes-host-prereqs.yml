@@ -1,0 +1,71 @@
+---
+- name: Prepare hosts for Kubernetes
+  hosts: k8s_cluster
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Persist required kernel modules
+      ansible.builtin.copy:
+        dest: /etc/modules-load.d/kubernetes.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          overlay
+          br_netfilter
+
+    - name: Load overlay kernel module
+      ansible.builtin.command:
+        cmd: modprobe overlay
+      changed_when: false
+
+    - name: Load br_netfilter kernel module
+      ansible.builtin.command:
+        cmd: modprobe br_netfilter
+      changed_when: false
+
+    - name: Configure Kubernetes networking sysctl settings
+      ansible.posix.sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        state: present
+        sysctl_set: true
+        reload: true
+      loop:
+        - name: net.ipv4.ip_forward
+          value: "1"
+        - name: net.bridge.bridge-nf-call-iptables
+          value: "1"
+        - name: net.bridge.bridge-nf-call-ip6tables
+          value: "1"
+
+    - name: Disable swap
+      ansible.builtin.command:
+        cmd: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Disable swap persistently in fstab
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^([^#\n]+\s+\S+\s+swap\s+.*)$'
+        replace: '# \1'
+
+    - name: Allow routed traffic on Kubernetes nodes
+      community.general.ufw:
+        direction: routed
+        policy: allow
+
+    - name: Ensure UFW remains enabled
+      community.general.ufw:
+        state: enabled
+
+    - name: Enable systemd-resolved for Kubespray kubelet DNS
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: true
+        state: started
+#Incoming public traffic → still  DENY
+#SSH public             →  still DENY
+#wg0 internal traffic   → ALLOW
+#Forwarding/Pod traffic → ALLOW
