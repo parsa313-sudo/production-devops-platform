@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: registry
 spec:
-  type: ClusterIP
+  type: NodePort
 
   selector:
     app: registry
@@ -12,4 +12,5 @@ spec:
     - name: registry
       port: 5000
       targetPort: registry
+      nodePort: 30500
       protocol: TCP
