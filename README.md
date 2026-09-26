@@ -51,30 +51,30 @@ The infrastructure consists of four servers:
 ### Phase 1 — Infrastructure
 
 - [x] Architecture design
-- [ ] Provision infrastructure server
-- [ ] Provision Kubernetes control plane
-- [ ] Configure base operating system
-- [ ] Configure Ansible
-- [ ] Configure WireGuard VPN
-- [ ] Configure private DNS
-- [ ] Configure firewall
+- [x] Provision infrastructure server
+- [x] Provision Kubernetes control plane
+- [x] Configure base operating system
+- [x] Configure Ansible
+- [x] Configure WireGuard VPN
+- [x] Configure private DNS
+- [x] Configure firewall
 
 ### Phase 2 — Kubernetes
 
-- [ ] Bootstrap Kubernetes control plane
-- [ ] Join Worker 1
-- [ ] Join Worker 2
-- [ ] Install Calico
-- [ ] Configure Network Policies
+- [x] Bootstrap Kubernetes control plane
+- [x] Join Worker 1
+- {x] Join Worker 2
+- [x] Install Calico
+- [x] Configure Network Policies
 
 ### Phase 3 — Platform Services
 
 - [ ] Gitea
 - [ ] Drone CI
-- [ ] Private Container Registry
-- [ ] Argo CD
-- [ ] PostgreSQL
-- [ ] Redis
+- [x] Private Container Registry
+- [x] Argo CD
+- [x] PostgreSQL
+- [x] Redis
 
 ### Phase 4 — Observability
 
