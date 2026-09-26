@@ -3,6 +3,7 @@ kind: Application
 metadata:
   name: local-path-provisioner
   namespace: argocd
+
 spec:
   project: default
 
@@ -24,25 +25,46 @@ spec:
           repository: registry.devops.internal:30500/library/busybox
           tag: "1.37.0"
 
-        storageClass:
-          create: true
-          name: local-pg
-          defaultClass: false
-          defaultVolumeType: local
-          reclaimPolicy: Retain
-          volumeBindingMode: WaitForFirstConsumer
+        storageClassConfigs:
+          local-pg:
+            storageClass:
+              create: true
+              defaultClass: false
+              defaultVolumeType: local
+              reclaimPolicy: Retain
+              volumeBindingMode: WaitForFirstConsumer
 
-        nodePathMap:
-          - node: k8s-worker-01
-            paths:
-              - /var/lib/local-path-provisioner
+            nodePathMap:
+              - node: k8s-worker-01
+                paths:
+                  - /var/lib/local-path-provisioner
 
-          - node: k8s-worker-02
-            paths:
-              - /var/lib/local-path-provisioner
+              - node: k8s-worker-02
+                paths:
+                  - /var/lib/local-path-provisioner
 
-          - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
-            paths: []
+              - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+                paths: []
+
+          local-redis:
+            storageClass:
+              create: true
+              defaultClass: false
+              defaultVolumeType: local
+              reclaimPolicy: Retain
+              volumeBindingMode: WaitForFirstConsumer
+
+            nodePathMap:
+              - node: k8s-worker-01
+                paths:
+                  - /var/lib/local-path-provisioner/redis
+
+              - node: k8s-worker-02
+                paths:
+                  - /var/lib/local-path-provisioner/redis
+
+              - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+                paths: []
 
         resources:
           requests:
