@@ -63,7 +63,7 @@ The infrastructure consists of four servers:
 
 - [x] Bootstrap Kubernetes control plane
 - [x] Join Worker 1
-- {x] Join Worker 2
+- [x] Join Worker 2
 - [x] Install Calico
 - [x] Configure Network Policies
 
