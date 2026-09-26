@@ -1,0 +1,125 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: redis
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: redis
+    targetRevision: 23.1.2
+
+    helm:
+      releaseName: redis
+
+      valuesObject:
+        global:
+          security:
+            allowInsecureImages: true
+
+        architecture: replication
+
+        image:
+          registry: registry.devops.internal:30500
+          repository: bitnami/redis
+          tag: "8.10.2"
+          pullPolicy: IfNotPresent
+
+        auth:
+          enabled: true
+          sentinel: true
+          existingSecret: redis-auth
+          existingSecretPasswordKey: redis-password
+
+        replica:
+          replicaCount: 3
+
+          persistence:
+            enabled: true
+            storageClass: local-redis
+            accessModes:
+              - ReadWriteOnce
+            size: 2Gi
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+          podAntiAffinityPreset: soft
+
+          nodeAffinityPreset:
+            type: hard
+            key: kubernetes.io/hostname
+            values:
+              - k8s-worker-01
+              - k8s-worker-02
+
+          topologySpreadConstraints:
+            - maxSkew: 1
+              topologyKey: kubernetes.io/hostname
+              whenUnsatisfiable: ScheduleAnyway
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: node
+
+        sentinel:
+          enabled: true
+
+          image:
+            registry: registry.devops.internal:30500
+            repository: bitnami/redis-sentinel
+            tag: "8.10.2"
+            pullPolicy: IfNotPresent
+
+          masterSet: mymaster
+          quorum: 2
+
+          downAfterMilliseconds: 5000
+          failoverTimeout: 60000
+          parallelSyncs: 1
+
+          persistence:
+            enabled: false
+
+          service:
+            createMaster: false
+
+          masterService:
+            enabled: false
+
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+        metrics:
+          enabled: false
+
+        volumePermissions:
+          enabled: false
+
+        sysctl:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: redis
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
