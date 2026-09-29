@@ -6,11 +6,10 @@ metadata:
 
 spec:
   project: default
-
   source:
-    repoURL: https://github.com/bitnami/charts.git
-    targetRevision: redis/23.1.2
-    path: bitnami/redis
+    repoURL: registry-1.docker.io/bitnamicharts
+    chart: redis
+    targetRevision: 28.1.0
 
     helm:
       releaseName: redis
