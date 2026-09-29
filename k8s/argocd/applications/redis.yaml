@@ -8,9 +8,9 @@ spec:
   project: default
 
   source:
-    repoURL: registry-1.docker.io/bitnamicharts
-    chart: redis
-    targetRevision: 23.1.2
+    repoURL: https://github.com/bitnami/charts.git
+    targetRevision: redis/23.1.2
+    path: bitnami/redis
 
     helm:
       releaseName: redis
