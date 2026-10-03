@@ -75,9 +75,6 @@ spec:
         ingress:
           enabled: false
 
-        actions:
-          enabled: false
-
         gitea:
           admin:
             existingSecret: gitea-admin-secret
@@ -95,6 +92,8 @@ spec:
               USER: gitea
               SCHEMA: public
               SSL_MODE: require
+          actions:
+            ENABLED: "false"
 
             session:
               PROVIDER: redis
