@@ -1,0 +1,153 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitea
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://dl.gitea.com/charts/
+    chart: gitea
+    targetRevision: 12.7.0
+
+    helm:
+      releaseName: gitea
+
+      valuesObject:
+        replicaCount: 1
+
+        image:
+          rootless: true
+          fullOverride: registry.devops.internal:30500/gitea/gitea:1.27.0-rootless
+          pullPolicy: IfNotPresent
+
+        redis-cluster:
+          enabled: false
+
+        redis:
+          enabled: false
+
+        postgresql:
+          enabled: false
+
+        postgresql-ha:
+          enabled: false
+
+        persistence:
+          enabled: true
+          create: true
+          mount: true
+          storageClass: nfs-rwx
+          size: 10Gi
+          accessModes:
+            - ReadWriteMany
+
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 750m
+            memory: 1Gi
+
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - k8s-worker-01
+                        - k8s-worker-02
+
+        service:
+          http:
+            type: ClusterIP
+            port: 3000
+
+          ssh:
+            type: ClusterIP
+            port: 22
+
+        ingress:
+          enabled: false
+
+        actions:
+          enabled: false
+
+        gitea:
+          admin:
+            existingSecret: gitea-admin-secret
+            passwordMode: initialOnlyNoReset
+            email: admin@devops.internal
+
+          metrics:
+            enabled: false
+
+          config:
+            database:
+              DB_TYPE: postgres
+              HOST: postgres-cluster-rw.database.svc.cluster.local:5432
+              NAME: gitea
+              USER: gitea
+              SCHEMA: public
+              SSL_MODE: require
+
+            session:
+              PROVIDER: redis
+
+            cache:
+              ENABLED: "true"
+              ADAPTER: redis
+
+            queue:
+              TYPE: redis
+
+            server:
+              DOMAIN: gitea.devops.internal
+              ROOT_URL: http://gitea.devops.internal/
+              SSH_DOMAIN: gitea.devops.internal
+
+          additionalConfigFromEnvs:
+            - name: GITEA__DATABASE__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-db-auth
+                  key: password
+
+            - name: GITEA__SESSION__PROVIDER_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-redis-auth
+                  key: uri
+
+            - name: GITEA__CACHE__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-redis-auth
+                  key: uri
+
+            - name: GITEA__QUEUE__CONN_STR
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-redis-auth
+                  key: uri
+
+        test:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitea
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
