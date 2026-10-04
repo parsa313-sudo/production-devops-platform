@@ -85,6 +85,9 @@ spec:
             enabled: false
 
           config:
+            actions:
+              ENABLED: "false"
+
             database:
               DB_TYPE: postgres
               HOST: postgres-cluster-rw.database.svc.cluster.local:5432
@@ -92,8 +95,6 @@ spec:
               USER: gitea
               SCHEMA: public
               SSL_MODE: require
-          actions:
-            ENABLED: "false"
 
             session:
               PROVIDER: redis
