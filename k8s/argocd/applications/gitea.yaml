@@ -23,6 +23,11 @@ spec:
           fullOverride: registry.devops.internal:30500/gitea/gitea:1.27.0-rootless
           pullPolicy: IfNotPresent
 
+        podSecurityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
+
         valkey-cluster:
           enabled: false
 
