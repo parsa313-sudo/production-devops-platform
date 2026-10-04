@@ -23,10 +23,10 @@ spec:
           fullOverride: registry.devops.internal:30500/gitea/gitea:1.27.0-rootless
           pullPolicy: IfNotPresent
 
-        redis-cluster:
+        valkey-cluster:
           enabled: false
 
-        redis:
+        valkey:
           enabled: false
 
         postgresql:
