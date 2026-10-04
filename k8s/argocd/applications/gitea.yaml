@@ -24,6 +24,7 @@ spec:
           pullPolicy: IfNotPresent
 
         podSecurityContext:
+          fsGroup: null
           runAsUser: 1000
           runAsGroup: 1000
           runAsNonRoot: true
