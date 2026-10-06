@@ -72,8 +72,9 @@ spec:
 
         service:
           http:
-            type: ClusterIP
+            type: NodePort
             port: 3000
+            clusterIP: ""
 
           ssh:
             type: ClusterIP
@@ -115,7 +116,7 @@ spec:
 
             server:
               DOMAIN: gitea.devops.internal
-              ROOT_URL: http://gitea.devops.internal/
+              ROOT_URL: http://gitea.devops.internal:300030/
               SSH_DOMAIN: gitea.devops.internal
 
           additionalConfigFromEnvs:
