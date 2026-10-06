@@ -6,6 +6,9 @@ image:
     tag: v4.13.4
     pullPolicy: IfNotPresent
 
+feature:
+  enableFSGroupPolicy: false
+
 controller:
   replicas: 1
   defaultOnDeletePolicy: retain
