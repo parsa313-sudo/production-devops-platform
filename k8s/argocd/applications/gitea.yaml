@@ -75,7 +75,7 @@ spec:
             type: NodePort
             port: 3000
             clusterIP: ""
-
+            nodePort: 30030
           ssh:
             type: ClusterIP
             port: 22
