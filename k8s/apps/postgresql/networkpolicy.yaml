@@ -35,3 +35,15 @@ spec:
           port: 8000
         - protocol: TCP
           port: 5432
+
+    # Gitea application access
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: gitea
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: gitea
+      ports:
+        - protocol: TCP
+          port: 5432
