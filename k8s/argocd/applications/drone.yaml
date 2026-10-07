@@ -8,9 +8,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://charts.drone.io
-    chart: drone
-    targetRevision: 0.6.5
+    repoURL: https://github.com/drone/charts.git
+    targetRevision: 5a2ed941f8987c5955f6b8e64f10f9a3b7b65cf9
+    path: charts/drone
 
     helm:
       releaseName: drone
