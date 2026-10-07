@@ -37,6 +37,7 @@ spec:
             - --host
             - tcp://localhost:2375
             - --insecure-registry=registry.devops.internal:30500
+            - --insecure-registry=registry.registry.svc.cluster.local:5000
 
           securityContext:
             privileged: true
