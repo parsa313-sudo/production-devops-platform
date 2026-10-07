@@ -1,0 +1,89 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: drone-runner
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/drone/charts.git
+    targetRevision: 5a2ed941f8987c5955f6b8e64f10f9a3b7b65cf9
+    path: charts/drone-runner-docker
+
+    helm:
+      releaseName: drone-runner
+
+      valuesObject:
+        replicaCount: 1
+
+        image:
+          registry: docker.io
+          repository: drone/drone-runner-docker
+          tag: 1.8.5
+          pullPolicy: IfNotPresent
+
+        dind:
+          registry: docker.io
+          repository: docker
+          tag: 25-dind
+          pullPolicy: IfNotPresent
+
+          securityContext:
+            privileged: true
+
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+
+        gc:
+          enabled: true
+
+        extraSecretNamesForEnvFrom:
+          - drone-runner-secrets
+
+        env:
+          DRONE_RPC_HOST: drone:8080
+          DRONE_RPC_PROTO: http
+          DRONE_RUNNER_CAPACITY: "1"
+          DRONE_RUNNER_LABELS: platform:kubernetes,environment:dev
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - k8s-worker-01
+                        - k8s-worker-02
+
+        autoscaling:
+          enabled: false
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: drone
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
