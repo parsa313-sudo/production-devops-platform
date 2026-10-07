@@ -119,6 +119,9 @@ spec:
               ROOT_URL: http://gitea.devops.internal:30030/
               SSH_DOMAIN: gitea.devops.internal
 
+            security:
+              ALLOWED_HOST_LIST: "external,10.50.0.0/24"
+
           additionalConfigFromEnvs:
             - name: GITEA__DATABASE__PASSWD
               valueFrom:
