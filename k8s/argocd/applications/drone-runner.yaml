@@ -51,7 +51,6 @@ spec:
           DRONE_RPC_HOST: drone:8080
           DRONE_RPC_PROTO: http
           DRONE_RUNNER_CAPACITY: "1"
-          DRONE_RUNNER_LABELS: platform:kubernetes,environment:dev
 
         resources:
           requests:
