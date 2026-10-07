@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: registry.devops.internal:30500/platform-demo-frontend:latest
+          image: registry.devops.internal:30500/platform-demo-frontend:4e2d29af29e42c3152933f982006f5e08d766cf4
           imagePullPolicy: Always
 
           ports:
