@@ -29,8 +29,15 @@ spec:
           repository: docker
           tag: 25-dind
           pullPolicy: IfNotPresent
+          command:
+            - dockerd
 
-          securityContext:
+          commandArgs:
+          - --host
+          - tcp://localhost:2375
+          - --insecure-registry=registry.devops.internal:30500
+          
+            securityContext:
             privileged: true
 
           resources:
