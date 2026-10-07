@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: drone
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://charts.drone.io
+    chart: drone
+    targetRevision: 0.6.5
+
+    helm:
+      releaseName: drone
+
+      valuesObject:
+        image:
+          registry: docker.io
+          repository: drone/drone
+          tag: 2.20.0
+          pullPolicy: IfNotPresent
+
+        service:
+          type: NodePort
+          port: 8080
+          nodePort: 30031
+
+        ingress:
+          enabled: false
+
+        persistentVolume:
+          enabled: false
+
+        extraSecretNamesForEnvFrom:
+          - drone-secrets
+
+        env:
+          DRONE_SERVER_HOST: drone.devops.internal:30031
+          DRONE_SERVER_PROTO: http
+
+          DRONE_GITEA_SERVER: http://gitea.devops.internal:30030
+
+          DRONE_DATABASE_DRIVER: postgres
+
+          DRONE_USER_CREATE: username:gitea_admin,admin:true
+
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - k8s-worker-01
+                        - k8s-worker-02
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: drone
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
