@@ -37,10 +37,10 @@ spec:
           - drone-secrets
 
         env:
-          DRONE_SERVER_HOST: drone.devops.internal:30031
+          DRONE_SERVER_HOST: drone.devops.internal
           DRONE_SERVER_PROTO: http
 
-          DRONE_GITEA_SERVER: http://gitea.devops.internal:30030
+          DRONE_GITEA_SERVER: http://gitea.devops.internal
 
           DRONE_DATABASE_DRIVER: postgres
 
