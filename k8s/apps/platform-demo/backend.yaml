@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: registry.devops.internal:30500/platform-demo-backend:4e2d29af29e42c3152933f982006f5e08d766cf4
+          image: registry.devops.internal:30500/platform-demo-backend:7526fbcbacf47e1708844f3e91d559396b0e77b7
           imagePullPolicy: Always
 
           ports:
