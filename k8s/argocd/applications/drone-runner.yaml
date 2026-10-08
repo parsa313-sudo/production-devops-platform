@@ -24,6 +24,13 @@ spec:
           tag: 1.8.5
           pullPolicy: IfNotPresent
 
+        extraVolumes:
+          - name: storage
+            emptyDir: {}
+
+          - name: devops-root-ca
+            configMap:
+              name: devops-root-ca
         dind:
           registry: docker.io
           repository: docker
@@ -50,6 +57,15 @@ spec:
               cpu: "2"
               memory: 2Gi
 
+          extraVolumeMounts:
+            - name: storage
+              mountPath: /var/lib/docker
+              subPath: docker
+
+            - name: devops-root-ca
+              mountPath: /drone-ca/devops-root-ca.crt
+              subPath: devops-root-ca.crt
+              readOnly: true
         gc:
           enabled: true
 
@@ -60,7 +76,8 @@ spec:
           DRONE_RPC_HOST: drone:8080
           DRONE_RPC_PROTO: http
           DRONE_RUNNER_CAPACITY: "1"
-
+          DRONE_RUNNER_VOLUMES: "/drone-ca/devops-root-ca.crt:/etc/ssl/certs/devops-root-ca.crt"
+          DRONE_RUNNER_ENVIRON: "GIT_SSL_CAINFO:/etc/ssl/certs/devops-root-ca.crt"
         resources:
           requests:
             cpu: 100m
