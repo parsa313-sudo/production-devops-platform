@@ -32,7 +32,6 @@ spec:
 
         persistentVolume:
           enabled: false
-
         extraSecretNamesForEnvFrom:
           - drone-secrets
 
@@ -46,16 +45,13 @@ spec:
             mountPath: /etc/ssl/certs/devops-root-ca.crt
             subPath: devops-root-ca.crt
             readOnly: true
-         env:
+
+        env:
           DRONE_SERVER_HOST: drone.devops.internal
           DRONE_SERVER_PROTO: https
-
           DRONE_GITEA_SERVER: https://gitea.devops.internal
-
           DRONE_DATABASE_DRIVER: postgres
-
           DRONE_USER_CREATE: username:gitea_admin,admin:true
-
         resources:
           requests:
             cpu: 100m
