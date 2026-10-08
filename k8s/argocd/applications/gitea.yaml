@@ -116,7 +116,7 @@ spec:
 
             server:
               DOMAIN: gitea.devops.internal
-              ROOT_URL: http://gitea.devops.internal/
+              ROOT_URL: https://gitea.devops.internal/
               SSH_DOMAIN: gitea.devops.internal
 
             security:

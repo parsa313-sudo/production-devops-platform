@@ -36,11 +36,22 @@ spec:
         extraSecretNamesForEnvFrom:
           - drone-secrets
 
+        extraVolumes:
+          - name: devops-root-ca
+            configMap:
+              name: devops-root-ca
+
+        extraVolumeMounts:
+          - name: devops-root-ca
+            mountPath: /etc/ssl/certs/devops-root-ca.crt
+            subPath: devops-root-ca.crt
+            readOnly: true
+ 
         env:
           DRONE_SERVER_HOST: drone.devops.internal
-          DRONE_SERVER_PROTO: http
+          DRONE_SERVER_PROTO: https
 
-          DRONE_GITEA_SERVER: http://gitea.devops.internal
+          DRONE_GITEA_SERVER: https://gitea.devops.internal
 
           DRONE_DATABASE_DRIVER: postgres
 
