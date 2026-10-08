@@ -150,6 +150,17 @@ spec:
         test:
           enabled: false
 
+        extraVolumes:
+          - name: devops-root-ca
+            configMap:
+              name: devops-root-ca
+
+        extraContainerVolumeMounts:
+          - name: devops-root-ca
+            mountPath: /etc/ssl/certs/devops-root-ca.crt
+            subPath: devops-root-ca.crt
+            readOnly: true
+
   destination:
     server: https://kubernetes.default.svc
     namespace: gitea
