@@ -46,8 +46,7 @@ spec:
             mountPath: /etc/ssl/certs/devops-root-ca.crt
             subPath: devops-root-ca.crt
             readOnly: true
- 
-        env:
+         env:
           DRONE_SERVER_HOST: drone.devops.internal
           DRONE_SERVER_PROTO: https
 
