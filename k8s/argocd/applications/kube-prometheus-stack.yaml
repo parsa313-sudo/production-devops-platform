@@ -1,0 +1,125 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: kube-prometheus-stack
+    targetRevision: 92.2.0
+
+    helm:
+      releaseName: monitoring
+
+      valuesObject:
+        crds:
+          enabled: true
+
+        grafana:
+          enabled: true
+
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
+
+          service:
+            type: NodePort
+            port: 80
+            nodePort: 30034
+
+          persistence:
+            enabled: true
+            type: sts
+            storageClassName: local-monitoring
+            accessModes:
+              - ReadWriteOnce
+            size: 5Gi
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+
+        prometheus:
+          prometheusSpec:
+            retention: 7d
+            scrapeInterval: 30s
+            evaluationInterval: 30s
+
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+
+            serviceMonitorNamespaceSelector: {}
+            podMonitorNamespaceSelector: {}
+            ruleNamespaceSelector: {}
+
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-monitoring
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 20Gi
+
+            resources:
+              requests:
+                cpu: 500m
+                memory: 1Gi
+              limits:
+                cpu: "2"
+                memory: 3Gi
+
+        alertmanager:
+          enabled: true
+
+          alertmanagerSpec:
+            replicas: 1
+
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-monitoring
+                  accessModes:
+                    - ReadWriteOnce
+                  resources:
+                    requests:
+                      storage: 2Gi
+
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi
+
+        nodeExporter:
+          enabled: true
+
+        kubeStateMetrics:
+          enabled: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
