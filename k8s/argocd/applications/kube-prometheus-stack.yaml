@@ -110,6 +110,13 @@ spec:
         kubeStateMetrics:
           enabled: true
 
+        kube-state-metrics:
+          image:
+            registry: registry.devops.internal:30500
+            repository: kube-state-metrics/kube-state-metrics
+            tag: v2.20.0
+            pullPolicy: IfNotPresent
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
