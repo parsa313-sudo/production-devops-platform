@@ -66,6 +66,26 @@ spec:
               - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
                 paths: []
 
+          local-monitoring:
+            storageClass:
+              create: true
+              defaultClass: false
+              defaultVolumeType: local
+              reclaimPolicy: Retain
+              volumeBindingMode: WaitForFirstConsumer
+
+            nodePathMap:
+              - node: k8s-worker-01
+                paths:
+                  - /var/lib/local-path-provisioner/monitoring
+
+              - node: k8s-worker-02
+                paths:
+                  - /var/lib/local-path-provisioner/monitoring
+
+              - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
+                paths: []
+
         resources:
           requests:
             cpu: 50m
