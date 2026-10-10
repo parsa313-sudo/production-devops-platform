@@ -53,6 +53,32 @@
         dest: 10.96.0.0/12
         comment: Kubernetes pod-to-Service traffic
 
+    - name: Allow Prometheus pods to scrape node-exporter
+      community.general.ufw:
+        rule: allow
+        direction: in
+        src: 10.244.0.0/16
+        port: "9100"
+        proto: tcp
+        comment: Prometheus node-exporter from pods
+
+    - name: Allow Prometheus pods to scrape kubelet
+      community.general.ufw:
+        rule: allow
+        direction: in
+        src: 10.244.0.0/16
+        port: "10250"
+        proto: tcp
+        comment: Prometheus kubelet from pods
+
+    - name: Allow Prometheus pods to scrape kube-proxy
+      community.general.ufw:
+        rule: allow
+        direction: in
+        src: 10.244.0.0/16
+        port: "10249"
+        proto: tcp
+        comment: Prometheus kube-proxy from pods
 
 - name: Configure infra firewall
   hosts: infra
