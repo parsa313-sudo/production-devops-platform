@@ -1,0 +1,65 @@
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+    maxconn 2048
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+
+frontend http_front
+    bind *:80
+
+    redirect scheme https code 301
+
+    default_backend app_backend
+
+frontend https_front
+    bind *:443 ssl crt /etc/haproxy/certs/devops.internal.pem
+
+    http-request set-header X-Forwarded-Proto https
+
+    acl host_app hdr(host) -i app.devops.internal
+    acl host_gitea hdr(host) -i gitea.devops.internal
+    acl host_drone hdr(host) -i drone.devops.internal
+    acl host_wordpress hdr(host) -i wordpress.devops.internal
+    acl host_grafana hdr(host) -i grafana.devops.internal
+
+    use_backend app_backend if host_app
+    use_backend gitea_backend if host_gitea
+    use_backend drone_backend if host_drone
+    use_backend wordpress_backend if host_wordpress
+    use_backend grafana_backend if host_grafana
+
+    default_backend app_backend
+
+backend app_backend
+    balance roundrobin
+    server worker01 10.50.0.11:30032 check
+    server worker02 10.50.0.12:30032 check
+
+backend gitea_backend
+    balance roundrobin
+    server worker01 10.50.0.11:30030 check
+    server worker02 10.50.0.12:30030 check
+
+backend drone_backend
+    balance roundrobin
+    server worker01 10.50.0.11:30031 check
+    server worker02 10.50.0.12:30031 check
+
+backend wordpress_backend
+    balance roundrobin
+    server worker01 10.50.0.11:30033 check
+    server worker02 10.50.0.12:30033 check
+
+backend grafana_backend
+    balance roundrobin
+    server worker01 10.50.0.11:30034 check
+    server worker02 10.50.0.12:30034 check

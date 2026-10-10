@@ -1,0 +1,44 @@
+---
+- name: Configure HAProxy reverse proxy
+  hosts: infra
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Install HAProxy
+      ansible.builtin.apt:
+        name: haproxy
+        state: present
+        update_cache: true
+
+    - name: Ensure HAProxy certificate exists
+      ansible.builtin.stat:
+        path: /etc/haproxy/certs/devops.internal.pem
+      register: haproxy_certificate
+
+    - name: Fail if HAProxy certificate is missing
+      ansible.builtin.fail:
+        msg: /etc/haproxy/certs/devops.internal.pem does not exist
+      when: not haproxy_certificate.stat.exists
+
+    - name: Deploy HAProxy configuration
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/haproxy/haproxy.cfg.j2"
+        dest: /etc/haproxy/haproxy.cfg
+        owner: root
+        group: root
+        mode: "0644"
+        validate: "haproxy -c -f %s"
+      notify: Reload HAProxy
+
+    - name: Enable and start HAProxy
+      ansible.builtin.systemd:
+        name: haproxy
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reload HAProxy
+      ansible.builtin.systemd:
+        name: haproxy
+        state: reloaded
