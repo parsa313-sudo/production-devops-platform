@@ -121,6 +121,61 @@ spec:
             tag: v2.20.0
             pullPolicy: IfNotPresent
 
+          prometheus:
+            monitor:
+              relabelings:
+                - action: replace
+                  targetLabel: cluster
+                  replacement: devops-cluster
+        kubelet:
+          serviceMonitor:
+            relabelings:
+              - action: replace
+                sourceLabels:
+                  - __metrics_path__
+                targetLabel: metrics_path
+
+              - action: replace
+                targetLabel: cluster
+                replacement: devops-cluster
+
+            cAdvisorRelabelings:
+              - action: replace
+                sourceLabels:
+                  - __metrics_path__
+                targetLabel: metrics_path
+
+              - action: replace
+                targetLabel: cluster
+                replacement: devops-cluster
+
+            probesRelabelings:
+              - action: replace
+                sourceLabels:
+                  - __metrics_path__
+                targetLabel: metrics_path
+
+              - action: replace
+                targetLabel: cluster
+                replacement: devops-cluster
+
+            resourceRelabelings:
+              - action: replace
+                sourceLabels:
+                  - __metrics_path__
+                targetLabel: metrics_path
+
+              - action: replace
+                targetLabel: cluster
+                replacement: devops-cluster
+
+        prometheus-node-exporter:
+          prometheus:
+            monitor:
+              relabelings:
+                - action: replace
+                  targetLabel: cluster
+                  replacement: devops-cluster
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
