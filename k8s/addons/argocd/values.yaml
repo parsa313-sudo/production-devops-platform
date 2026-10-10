@@ -24,10 +24,19 @@ controller:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 1Gi
+  volumeMounts:
+    - name: argocd-shm
+      mountPath: /dev/shm
+
+  volumes:
+    - name: argocd-shm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 256Mi
 
 repoServer:
   resources:

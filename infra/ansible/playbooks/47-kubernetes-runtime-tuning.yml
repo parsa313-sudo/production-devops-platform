@@ -1,43 +1,10 @@
 ---
-- name: Apply Kubernetes runtime tuning required by monitoring
+- name: Configure kube-proxy metrics for Prometheus
   hosts: localhost
   connection: local
   gather_facts: false
 
   tasks:
-    - name: Increase Argo CD application-controller resources
-      ansible.builtin.command:
-        argv:
-          - kubectl
-          - -n
-          - argocd
-          - set
-          - resources
-          - statefulset
-          - argocd-application-controller
-          - -c
-          - application-controller
-          - --requests=cpu=100m,memory=512Mi
-          - --limits=cpu=500m,memory=1Gi
-      register: argocd_resources
-      changed_when: "'updated' in argocd_resources.stdout"
-
-    - name: Increase Argo CD application-controller shared memory
-      ansible.builtin.command:
-        argv:
-          - kubectl
-          - -n
-          - argocd
-          - patch
-          - statefulset
-          - argocd-application-controller
-          - --type=strategic
-          - -p
-          - >-
-            {"spec":{"template":{"spec":{"volumes":[{"name":"argocd-shm","emptyDir":{"medium":"Memory","sizeLimit":"256Mi"}}],"containers":[{"name":"application-controller","volumeMounts":[{"name":"argocd-shm","mountPath":"/dev/shm"}]}]}}}}
-      register: argocd_shm
-      changed_when: "'no change' not in argocd_shm.stdout"
-
     - name: Read kube-proxy configuration
       ansible.builtin.command:
         argv:
