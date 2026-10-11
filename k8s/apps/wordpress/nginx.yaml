@@ -22,6 +22,9 @@ spec:
       port: 9113
       targetPort: metrics
 
+    - name: cache-metrics
+      port: 9114
+      targetPort: cache-metrics
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,7 +34,6 @@ metadata:
 
 spec:
   replicas: 2
-
   selector:
     matchLabels:
       app: wordpress-nginx
@@ -88,6 +90,49 @@ spec:
           image: nginx/nginx-prometheus-exporter:1.5.3
           imagePullPolicy: IfNotPresent
 
+        - name: nginx-cache-exporter
+          image: python:3.12-alpine
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - python
+            - /app/exporter.py
+
+          ports:
+            - name: cache-metrics
+              containerPort: 9114
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: cache-metrics
+            initialDelaySeconds: 3
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: cache-metrics
+            initialDelaySeconds: 10
+            periodSeconds: 20
+
+          resources:
+            requests:
+              cpu: 10m
+              memory: 24Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+          volumeMounts:
+            - name: cache-exporter-code
+              mountPath: /app
+              readOnly: true
+
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+              readOnly: true
+
           args:
             - --nginx.scrape-uri=http://127.0.0.1:8080/stub_status
 
@@ -111,6 +156,9 @@ spec:
         - name: nginx-cache
           emptyDir: {}
 
+        - name: cache-exporter-code
+          configMap:
+            name: wordpress-nginx-cache-exporter
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
@@ -125,5 +173,9 @@ spec:
 
   endpoints:
     - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+    - port: cache-metrics
       interval: 30s
       scrapeTimeout: 10s
