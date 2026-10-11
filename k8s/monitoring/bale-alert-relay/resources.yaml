@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bale-alert-relay
+  namespace: monitoring
+data:
+  relay.py: |
+    import json
+    import os
+    import urllib.request
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    TOKEN = os.environ["BALE_BOT_TOKEN"]
+    CHAT_ID = os.environ["BALE_CHAT_ID"]
+
+    BALE_URL = f"https://tapi.bale.ai/bot{TOKEN}/sendMessage"
+
+    def send_to_bale(text):
+        payload = json.dumps({
+            "chat_id": int(CHAT_ID),
+            "text": text
+        }).encode("utf-8")
+
+        request = urllib.request.Request(
+            BALE_URL,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+
+        with urllib.request.urlopen(request, timeout=10) as response:
+            body = response.read().decode("utf-8")
+            result = json.loads(body)
+
+            if not result.get("ok"):
+                raise RuntimeError(f"Bale API error: {body}")
+
+    def format_alert(payload):
+        status = payload.get("status", "unknown")
+
+        if status == "firing":
+            header = "🚨 ALERT FIRING"
+        else:
+            header = "✅ ALERT RESOLVED"
+
+        lines = [header]
+
+        for alert in payload.get("alerts", [])[:10]:
+            labels = alert.get("labels", {})
+            annotations = alert.get("annotations", {})
+
+            lines.extend([
+                "",
+                f"Alert: {labels.get('alertname', 'unknown')}",
+                f"Severity: {labels.get('severity', 'unknown')}",
+                f"Namespace: {labels.get('namespace', 'N/A')}",
+                f"Summary: {annotations.get('summary', 'N/A')}",
+            ])
+
+        return "\n".join(lines)
+
+    class Handler(BaseHTTPRequestHandler):
+
+        def do_GET(self):
+            if self.path == "/healthz":
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"ok")
+                return
+
+            self.send_response(404)
+            self.end_headers()
+
+        def do_POST(self):
+            if self.path != "/alert":
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+                body = self.rfile.read(length)
+
+                payload = json.loads(body)
+                message = format_alert(payload)
+
+                send_to_bale(message)
+
+                print(message, flush=True)
+
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"ok")
+
+            except Exception as error:
+                print(f"ERROR: {error}", flush=True)
+
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(error).encode())
+
+        def log_message(self, format, *args):
+            return
+
+    print("Bale Alert Relay listening on :8080", flush=True)
+
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bale-alert-relay
+  namespace: monitoring
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: bale-alert-relay
+
+  template:
+    metadata:
+      labels:
+        app: bale-alert-relay
+
+    spec:
+      containers:
+        - name: relay
+          image: python:3.12-alpine
+
+          command:
+            - python
+            - /app/relay.py
+
+          envFrom:
+            - secretRef:
+                name: bale-alert-relay-secret
+
+          ports:
+            - name: http
+              containerPort: 8080
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+          volumeMounts:
+            - name: relay-code
+              mountPath: /app
+              readOnly: true
+
+      volumes:
+        - name: relay-code
+          configMap:
+            name: bale-alert-relay
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bale-alert-relay
+  namespace: monitoring
+spec:
+  selector:
+    app: bale-alert-relay
+
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+
+  type: ClusterIP

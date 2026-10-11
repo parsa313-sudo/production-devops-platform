@@ -87,6 +87,23 @@ spec:
         alertmanager:
           enabled: true
 
+
+          config:
+            route:
+              receiver: bale
+
+              routes:
+                - receiver: "null"
+                  matchers:
+                    - alertname = "Watchdog"
+            receivers:
+              - name: "null"
+
+              - name: bale
+                webhook_configs:
+                  - url: http://bale-alert-relay.monitoring.svc.cluster.local:8080/alert
+                    send_resolved: true
+
           alertmanagerSpec:
             replicas: 1
 
