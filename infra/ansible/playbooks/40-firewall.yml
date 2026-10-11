@@ -118,6 +118,23 @@
         proto: tcp
         src: 10.50.0.0/24
 
+    - name: Allow node-exporter from WireGuard network
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        port: "9100"
+        proto: tcp
+        src: 10.50.0.0/24
+        comment: Prometheus node-exporter over WireGuard
+
+    - name: Allow node-exporter from Kubernetes pods
+      community.general.ufw:
+        rule: allow
+        interface_in: wg0
+        port: "9100"
+        proto: tcp
+        src: 10.244.0.0/16
+        comment: Prometheus pods scrape infra node-exporter
 
 - name: Enable UFW
   hosts: all

@@ -66,6 +66,18 @@ spec:
             podMonitorNamespaceSelector: {}
             ruleNamespaceSelector: {}
 
+            additionalScrapeConfigs:
+              - job_name: infra-node-exporter
+                scrape_interval: 30s
+
+                static_configs:
+                  - targets:
+                      - 10.50.0.1:9100
+
+                    labels:
+                      instance: infra-01
+                      cluster: devops-infra
+
             storageSpec:
               volumeClaimTemplate:
                 spec:
