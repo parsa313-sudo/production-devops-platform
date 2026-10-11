@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: database-availability
+  namespace: monitoring
+
+spec:
+  groups:
+    - name: database-availability
+      rules:
+        - alert: PostgreSQLInstanceDown
+          expr: cnpg_collector_up{cluster="postgres-cluster"} == 0
+          for: 2m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "PostgreSQL instance is down"
+            description: "PostgreSQL instance {{ $labels.pod }} has been unavailable for more than 2 minutes."
+
+        - alert: PostgreSQLMonitoringMissing
+          expr: absent(cnpg_collector_up{cluster="postgres-cluster"})
+          for: 2m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "PostgreSQL monitoring is missing"
+            description: "Prometheus is no longer receiving PostgreSQL health metrics."
+
+        - alert: RedisInstanceDown
+          expr: redis_up{job="redis-metrics"} == 0
+          for: 2m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "Redis instance is down"
+            description: "Redis instance {{ $labels.instance }} has been unavailable for more than 2 minutes."
+
+        - alert: RedisExporterDown
+          expr: up{namespace="redis",job="redis-metrics"} == 0
+          for: 2m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "Redis monitoring target is down"
+            description: "Prometheus cannot scrape Redis metrics from {{ $labels.instance }}."
