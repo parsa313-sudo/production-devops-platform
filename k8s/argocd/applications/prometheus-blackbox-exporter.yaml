@@ -1,0 +1,111 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-blackbox-exporter
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: prometheus-blackbox-exporter
+    targetRevision: 11.20.0
+
+    helm:
+      releaseName: blackbox
+
+      valuesObject:
+        config:
+          modules:
+            http_2xx:
+              prober: http
+              timeout: 10s
+
+              http:
+                valid_http_versions:
+                  - HTTP/1.1
+                  - HTTP/2.0
+
+                follow_redirects: true
+                preferred_ip_protocol: ip4
+
+                tls_config:
+                  insecure_skip_verify: true
+
+        service:
+          type: ClusterIP
+          port: 9115
+
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+
+        serviceMonitor:
+          enabled: true
+
+          defaults:
+            interval: 30s
+            scrapeTimeout: 15s
+            module: http_2xx
+
+          targets:
+            - name: app
+              url: https://app.devops.internal
+
+            - name: gitea
+              url: https://gitea.devops.internal
+
+            - name: drone
+              url: https://drone.devops.internal
+
+            - name: wordpress
+              url: https://wordpress.devops.internal
+
+            - name: grafana
+              url: https://grafana.devops.internal
+
+        prometheusRule:
+          enabled: true
+          namespace: monitoring
+
+          rules:
+            - alert: BlackboxProbeFailed
+              expr: probe_success{job=~".*blackbox.*"} == 0
+              for: 2m
+
+              labels:
+                severity: critical
+
+              annotations:
+                summary: "Endpoint {{ $labels.target }} is unreachable"
+                description: "Blackbox probe for {{ $labels.instance }} has failed for more than 2 minutes."
+
+            - alert: BlackboxCertificateExpiringSoon
+              expr: (probe_ssl_earliest_cert_expiry{job=~".*blackbox.*"} - time()) < 604800 and probe_ssl_earliest_cert_expiry{job=~".*blackbox.*"} > 0
+              for: 5m
+
+              labels:
+                severity: warning
+
+              annotations:
+                summary: "TLS certificate for {{ $labels.target }} expires soon"
+                description: "TLS certificate for {{ $labels.instance }} expires in less than 7 days."
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
