@@ -59,14 +59,18 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
-    # Platform demo backend access
+# Platform demo backend access
     - from:
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: platform-demo
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: platform-demo
           podSelector:
             matchLabels:
               app.kubernetes.io/name: platform-demo-backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
     # Prometheus monitoring
     - from:
         - namespaceSelector:
@@ -75,7 +79,3 @@ spec:
       ports:
         - protocol: TCP
           port: 9187
-
-      ports:
-        - protocol: TCP
-          port: 5432
