@@ -3,6 +3,9 @@ kind: Service
 metadata:
   name: wordpress-nginx
   namespace: wordpress
+  labels:
+    app: wordpress-nginx
+
 spec:
   type: NodePort
   selector:
@@ -12,7 +15,9 @@ spec:
       port: 80
       targetPort: 80
       nodePort: 30033
-
+    - name: metrics
+      port: 9113
+      targetPort: metrics
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,6 +42,24 @@ spec:
           image: nginx:alpine
           imagePullPolicy: IfNotPresent
 
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.5.3
+          imagePullPolicy: IfNotPresent
+
+          args:
+            - --nginx.scrape-uri=http://127.0.0.1:8080/stub_status
+
+          ports:
+            - name: metrics
+              containerPort: 9113
+
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
           ports:
             - containerPort: 80
               name: http
@@ -81,3 +104,19 @@ spec:
 
         - name: nginx-cache
           emptyDir: {}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: wordpress-nginx
+  namespace: wordpress
+
+spec:
+  selector:
+    matchLabels:
+      app: wordpress-nginx
+
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s

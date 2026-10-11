@@ -21,7 +21,15 @@ data:
             default_type text/plain;
             return 200 "ok\n";
         }
+    server {
+        listen 8080;
+        server_name _;
 
+        location = /stub_status {
+            stub_status;
+            access_log off;
+        }
+    }
         location ~* \.(css|js|jpg|jpeg|gif|png|webp|svg|ico|woff|woff2|ttf|eot)$ {
             proxy_pass http://wordpress;
 
