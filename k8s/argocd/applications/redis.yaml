@@ -102,7 +102,11 @@ spec:
               memory: 128Mi
 
         metrics:
-          enabled: false
+          enabled: true
+
+          serviceMonitor:
+            enabled: true
+            interval: 30s
 
         volumePermissions:
           enabled: false

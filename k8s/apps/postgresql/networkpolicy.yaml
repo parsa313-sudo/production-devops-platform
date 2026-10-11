@@ -67,6 +67,15 @@ spec:
           podSelector:
             matchLabels:
               app.kubernetes.io/name: platform-demo-backend
+    # Prometheus monitoring
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9187
+
       ports:
         - protocol: TCP
           port: 5432
