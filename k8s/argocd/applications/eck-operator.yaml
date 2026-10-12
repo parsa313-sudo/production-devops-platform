@@ -8,9 +8,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://helm.elastic.co
-    chart: eck-operator
-    targetRevision: 3.5.0
+    repoURL: https://github.com/elastic/cloud-on-k8s.git
+    targetRevision: v3.5.0
+    path: deploy/eck-operator
 
     helm:
       releaseName: elastic-operator
