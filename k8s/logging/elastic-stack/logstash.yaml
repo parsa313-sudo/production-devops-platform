@@ -1,0 +1,60 @@
+apiVersion: logstash.k8s.elastic.co/v1alpha1
+kind: Logstash
+metadata:
+  name: logstash
+  namespace: logging
+
+spec:
+  version: 9.5.5
+  count: 1
+
+  image: registry.devops.internal:30500/elastic/logstash:9.5.5
+
+  elasticsearchRefs:
+    - clusterName: eck
+      name: elasticsearch
+
+  pipelines:
+    - pipeline.id: main
+      config.string: |
+        input {
+          beats {
+            port => 5044
+          }
+        }
+
+        output {
+          elasticsearch {
+            hosts => [ "${ECK_ES_HOSTS}" ]
+            user => "${ECK_ES_USER}"
+            password => "${ECK_ES_PASSWORD}"
+            ssl_certificate_authorities => "${ECK_ES_SSL_CERTIFICATE_AUTHORITY}"
+          }
+        }
+
+  services:
+    - name: beats
+      service:
+        spec:
+          type: ClusterIP
+          ports:
+            - name: filebeat
+              port: 5044
+              targetPort: 5044
+              protocol: TCP
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  podTemplate:
+    spec:
+      containers:
+        - name: logstash
+          env:
+            - name: LS_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
