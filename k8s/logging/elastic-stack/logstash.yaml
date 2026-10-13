@@ -10,6 +10,16 @@ spec:
 
   image: registry.devops.internal:30500/elastic/logstash:9.5.5
 
+  volumeClaimTemplates:
+    - metadata:
+        name: logstash-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: local-logging
+        resources:
+          requests:
+            storage: 5Gi
   elasticsearchRefs:
     - clusterName: eck
       name: elasticsearch
