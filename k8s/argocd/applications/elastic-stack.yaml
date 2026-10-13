@@ -16,11 +16,32 @@ spec:
     server: https://kubernetes.default.svc
     namespace: logging
 
-  syncPolicy:
+  ignoreDifferences:
+    - group: logstash.k8s.elastic.co
+      kind: Logstash
+      name: logstash
+      namespace: logging
+      jsonPointers:
+        - /spec/podTemplate/spec/containers/0/resources
+        - /spec/services/0/service/metadata
+        - /spec/services/0/tls
+        - /spec/volumeClaimTemplates/0/status
+    ignoreDifferences:
+    - group: logstash.k8s.elastic.co
+      kind: Logstash
+      name: logstash
+      namespace: logging
+      jsonPointers:
+        - /spec/podTemplate/spec/containers/0/resources
+        - /spec/services/0/service/metadata
+        - /spec/services/0/tls
+        - /spec/volumeClaimTemplates/0/status
+
+    syncPolicy:
     automated:
       enabled: true
       prune: true
       selfHeal: true
-
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
