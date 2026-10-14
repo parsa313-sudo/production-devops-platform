@@ -23,7 +23,15 @@ Network plugin: `Calico`
 
 ### High-Level Architecture
 
-![High Level Architecture](arch/01-high-level.png)
+![Full Platform Architecture](arch/01-full-architecture.png)
+
+### Architecture Diagrams
+
+- [Full Platform Architecture](arch/01-full-architecture.png)
+- [GitOps & CI/CD Flow](arch/02-gitops-cicd-flow.png)
+- [Observability & Centralized Logging](arch/03-observability-logging.png)
+- [Security, Networking & Access Control](arch/04-security-networking.png)
+- [Backup & Disaster Recovery](arch/05-backup-disaster-recovery.png)
 
 ## Core Technologies
 
@@ -311,6 +319,7 @@ The platform uses multiple storage classes based on workload requirements.
 | `local-pg` | PostgreSQL persistent storage |
 | `local-redis` | Redis persistent storage |
 | `local-logging` | Elasticsearch and Logstash |
+| `local-monitoring` | Prometheus / monitoring persistent storage |
 | `nfs-rwx` | Shared ReadWriteMany storage |
 
 Persistent volumes use retention-oriented configuration for stateful workloads.
@@ -391,11 +400,14 @@ The final platform validation confirmed:
 
 ```text
 production-devops-platform/
-├── arch/       # Architecture diagrams
-├── cicd/       # CI/CD configuration
-├── docs/       # Project documentation
-├── infra/      # Infrastructure configuration
-├── k8s/        # Kubernetes and GitOps manifests
+├── 00-Project-Description/   # Original project/SRS reference images
+├── arch/                     # Final architecture diagrams
+├── ansible/                  # Infrastructure automation
+│   ├── inventory/
+│   ├── playbooks/
+│   └── templates/
+├── k8s/                      # Kubernetes workloads, GitOps, monitoring and logging
+├── .gitignore
 └── README.md
 ```
 
